@@ -6,7 +6,7 @@ static const CGFloat kDefaultCropWidth = 320;
 static const CGFloat kDefaultCropHeight = 320;
 static const CGFloat kBoundingBoxInset = 15;
 static const NSTimeInterval kAnimationIntervalReset = 0.25;
-static const NSTimeInterval kAnimationIntervalTransform = 0.2;
+static const NSTimeInterval kAnimationIntervalTransform = 0.35;
 
 @interface HFImageEditorViewController ()
 @property (nonatomic,retain) UIImageView *imageView;
@@ -53,6 +53,7 @@ static const NSTimeInterval kAnimationIntervalTransform = 0.2;
 @dynamic rotateEnabled;
 @dynamic scaleEnabled;
 @dynamic tapToResetEnabled;
+@synthesize limitedSizeEnabled=_limitedSizeEnabled;
 @dynamic cropBoundsInSourceImage;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
@@ -63,6 +64,8 @@ static const NSTimeInterval kAnimationIntervalTransform = 0.2;
         _rotationRecognizer = [[UIRotationGestureRecognizer alloc] initWithTarget:self action:@selector(handleRotation:)];
         _pinchRecognizer = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(handlePinch:)];
         _tapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleTap:)];
+    
+        _limitedSizeEnabled=NO;
     }
     return self;
 }
@@ -184,6 +187,12 @@ static const NSTimeInterval kAnimationIntervalTransform = 0.2;
     CGFloat aspect = self.sourceImage.size.height/self.sourceImage.size.width;
     CGFloat w = CGRectGetWidth(self.cropRect);
     CGFloat h = aspect * w;
+    
+    if(_limitedSizeEnabled &&  h<self.cropRect.size.height){
+        h=CGRectGetHeight(self.cropRect);
+        w=h/aspect;
+    }
+    
     self.scale = 1;
     
     void (^doReset)(void) = ^{
@@ -346,7 +355,88 @@ static const NSTimeInterval kAnimationIntervalTransform = 0.2;
 }
 
 #pragma mark Gestures
-
+-(BOOL) _scaleMe
+{
+    BOOL ret = NO;
+    
+    CGFloat scale = self.scale;
+    if(self.minimumScale != 0 && self.scale < self.minimumScale) {
+        scale = self.minimumScale;
+    } else if(self.maximumScale != 0 && self.scale > self.maximumScale) {
+        scale = self.maximumScale;
+    }
+    
+    if( _limitedSizeEnabled &&
+        (self.imageView.frame.size.width<self.cropRect.size.width||self.imageView.frame.size.height<self.cropRect.size.height) ){
+        
+        CGFloat xx =self.cropRect.size.width/self.imageView.bounds.size.width;
+        CGFloat yy =self.cropRect.size.height/self.imageView.bounds.size.height;
+        scale = MAX(xx,yy);
+    }
+    
+    if(scale != self.scale) {
+        CGFloat deltaX = self.scaleCenter.x-self.imageView.bounds.size.width/2.0;
+        CGFloat deltaY = self.scaleCenter.y-self.imageView.bounds.size.height/2.0;
+        
+        CGAffineTransform transform =  CGAffineTransformTranslate(self.imageView.transform, deltaX, deltaY);
+        transform = CGAffineTransformScale(transform, scale/self.scale , scale/self.scale);
+        transform = CGAffineTransformTranslate(transform, -deltaX, -deltaY);
+        self.view.userInteractionEnabled = NO;
+        [UIView animateWithDuration:kAnimationIntervalTransform delay:0 options:UIViewAnimationCurveEaseOut animations:^{
+            self.imageView.transform = transform;
+        } completion:^(BOOL finished) {
+            self.view.userInteractionEnabled = YES;
+            self.scale = scale;
+            
+            if(_limitedSizeEnabled)
+                [self _translateMe];
+        }];
+        
+        ret=YES;
+    }
+    return ret;
+}
+-(BOOL) _translateMe
+{
+    BOOL ret=NO;
+    
+    if(!_limitedSizeEnabled) return NO;
+    
+    CGFloat minX=self.cropRect.origin.x+self.cropRect.size.width-self.imageView.frame.size.width;
+    CGFloat maxX=self.cropRect.origin.x;
+    CGFloat minY=self.cropRect.origin.y+self.cropRect.size.height-self.imageView.frame.size.height;
+    CGFloat maxY=self.cropRect.origin.y;
+    
+    CGFloat dx =MAX(minX, MIN(self.imageView.frame.origin.x,maxX));
+    CGFloat dy =MAX(minY, MIN(self.imageView.frame.origin.y,maxY));
+    
+    if(dx!=self.imageView.frame.origin.x || dy!=self.imageView.frame.origin.y) {
+        
+        NSLog(@"==image from %@",NSStringFromCGRect(self.imageView.frame));
+        NSLog(@"====transform11 is %@,,,delta x=%f,y=%f",NSStringFromCGAffineTransform(self.imageView.transform),dx,dy);
+        
+        self.view.userInteractionEnabled = NO;
+        [UIView animateWithDuration: kAnimationIntervalTransform delay:0 options:UIViewAnimationCurveEaseOut animations:^{
+            
+            CGRect imgFrame=self.imageView.frame;
+            imgFrame.origin.x=dx;
+            imgFrame.origin.y=dy;
+            
+            CGAffineTransform imgTransform=self.imageView.transform;
+            self.imageView.transform=CGAffineTransformMake(imgTransform.a, imgTransform.b, imgTransform.c, imgTransform.d, dx, dy);
+            
+            self.imageView.frame=imgFrame;
+            
+        } completion:^(BOOL finished) {
+            self.view.userInteractionEnabled = YES;
+            NSLog(@"====transform22 is %@",NSStringFromCGAffineTransform(self.imageView.transform));
+            NSLog(@"==image to %@",NSStringFromCGRect(self.imageView.frame));
+        }];
+        
+        ret=YES;
+    }
+    return ret;
+}
 - (BOOL)handleGestureState:(UIGestureRecognizerState)state
 {
     BOOL handle = YES;
@@ -359,28 +449,8 @@ static const NSTimeInterval kAnimationIntervalTransform = 0.2;
             self.gestureCount--;
             handle = NO;
             if(self.gestureCount == 0) {
-                CGFloat scale = self.scale;
-                if(self.minimumScale != 0 && self.scale < self.minimumScale) {
-                    scale = self.minimumScale;
-                } else if(self.maximumScale != 0 && self.scale > self.maximumScale) {
-                    scale = self.maximumScale;
-                }
-                if(scale != self.scale) {
-                    CGFloat deltaX = self.scaleCenter.x-self.imageView.bounds.size.width/2.0;
-                    CGFloat deltaY = self.scaleCenter.y-self.imageView.bounds.size.height/2.0;
-                    
-                    CGAffineTransform transform =  CGAffineTransformTranslate(self.imageView.transform, deltaX, deltaY);
-                    transform = CGAffineTransformScale(transform, scale/self.scale , scale/self.scale);
-                    transform = CGAffineTransformTranslate(transform, -deltaX, -deltaY);
-                    self.view.userInteractionEnabled = NO;
-                    [UIView animateWithDuration:kAnimationIntervalTransform delay:0 options:UIViewAnimationCurveEaseOut animations:^{
-                        self.imageView.transform = transform;            
-                    } completion:^(BOOL finished) {
-                        self.view.userInteractionEnabled = YES;
-                        self.scale = scale;
-                    }];
-                    
-                }
+                if(![self _scaleMe])
+                    [self _translateMe];
             }
         } break;
         default:
