@@ -4,25 +4,15 @@
 
 @interface DemoAppDelegate()
 @property(nonatomic,retain) DemoImageEditor *imageEditor;
-@property(nonatomic,retain) ALAssetsLibrary *library;
 @end
 
 @implementation DemoAppDelegate
 
-@synthesize library = _library;
 @synthesize imageEditor = _imageEditor;
-
-- (void)dealloc
-{
-    [_library release];
-    [_imageEditor release];
-    [_window release];
-    [super dealloc];
-}
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-    self.window = [[[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]] autorelease];
+    self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     
     //if([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypePhotoLibrary]) {
     UIImagePickerController *picker = [[UIImagePickerController alloc] init];
@@ -31,15 +21,14 @@
     picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
     picker.delegate = self;
     self.window.rootViewController = picker;
-    [picker release];
     
-    self.library = [[[ALAssetsLibrary alloc] init] autorelease];
-    self.imageEditor = [[[DemoImageEditor alloc] initWithNibName:@"DemoImageEditor" bundle:nil] autorelease];
+    __block ALAssetsLibrary *library = [[ALAssetsLibrary alloc] init];
+    self.imageEditor = [[DemoImageEditor alloc] initWithNibName:@"DemoImageEditor" bundle:nil];
     
     self.imageEditor.doneCallback = ^(UIImage *editedImage, BOOL canceled){
         if(!canceled) {
           
-            [self.library writeImageToSavedPhotosAlbum:[editedImage CGImage]
+            [library writeImageToSavedPhotosAlbum:[editedImage CGImage]
                                       orientation:editedImage.imageOrientation
                                   completionBlock:^(NSURL *assetURL, NSError *error){
                                       if (error) {
@@ -49,7 +38,6 @@
                                                                                 cancelButtonTitle:@"Ok"
                                                                                 otherButtonTitles: nil];
                                           [alert show];
-                                          [alert release];
                                       }
                                   }];
         }
@@ -67,7 +55,9 @@
     UIImage *image =  [info objectForKey:UIImagePickerControllerOriginalImage];
     NSURL *assetURL = [info objectForKey:UIImagePickerControllerReferenceURL];
 
-    [self.library assetForURL:assetURL resultBlock:^(ALAsset *asset) {
+    ALAssetsLibrary *library = [[ALAssetsLibrary alloc] init];
+    
+    [library assetForURL:assetURL resultBlock:^(ALAsset *asset) {
         UIImage *preview = [UIImage imageWithCGImage:[asset aspectRatioThumbnail]];
 
         self.imageEditor.sourceImage = image;
@@ -90,7 +80,6 @@
                                           cancelButtonTitle:@"Ok"
                                           otherButtonTitles: nil];
     [alert show];
-    [alert release];
 }
 
 - (void)applicationWillResignActive:(UIApplication *)application

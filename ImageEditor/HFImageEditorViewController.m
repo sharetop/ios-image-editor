@@ -72,17 +72,18 @@ static const NSTimeInterval kAnimationIntervalTransform = 0.35;
 
 - (void) dealloc
 {
-
-    [_imageView release];
-    [_frameView release];
-    [_doneCallback release];
-    [_sourceImage release];
-    [_previewImage release];
-    [_panRecognizer release];
-    [_rotationRecognizer release];
-    [_pinchRecognizer release];
-    [_tapRecognizer release];
-    [super dealloc];
+    [_panRecognizer removeTarget:self action:@selector(handlePan:)];
+    [_frameView removeGestureRecognizer:_panRecognizer];
+    
+    [_pinchRecognizer removeTarget:self action:@selector(handlePinch:)];
+    [_frameView removeGestureRecognizer:_pinchRecognizer];
+    
+    [_tapRecognizer removeTarget:self action:@selector(handleTap:)];
+    [_frameView removeGestureRecognizer:_tapRecognizer];
+    
+    [_rotationRecognizer removeTarget:self action:@selector(handleRotation:)];
+    [_frameView removeGestureRecognizer:_rotationRecognizer];
+    
 }
 
 #pragma mark Properties
@@ -112,9 +113,9 @@ static const NSTimeInterval kAnimationIntervalTransform = 0.35;
             } else { // landscape
                 size = CGSizeMake(kPreviewImageSize,kPreviewImageSize*aspect);
             }
-            _previewImage = [[self scaledImage:self.sourceImage  toSize:size withQuality:kCGInterpolationLow] retain];
+            _previewImage = [self scaledImage:self.sourceImage  toSize:size withQuality:kCGInterpolationLow];
         } else {
-            _previewImage = [_sourceImage retain];
+            _previewImage = _sourceImage;
         }
     }
     return  _previewImage;
@@ -123,8 +124,7 @@ static const NSTimeInterval kAnimationIntervalTransform = 0.35;
 - (void)setSourceImage:(UIImage *)sourceImage
 {
     if(sourceImage != _sourceImage) {
-        [_sourceImage release];
-        _sourceImage = [sourceImage retain];
+        _sourceImage = sourceImage;
         self.previewImage = nil;
     }
 }
@@ -215,10 +215,8 @@ static const NSTimeInterval kAnimationIntervalTransform = 0.35;
 {
     [super viewDidLoad];
     
-    UIImageView *imageView = [[UIImageView alloc] init];
-    [self.view insertSubview:imageView belowSubview:self.frameView];
-    self.imageView = imageView;
-    [imageView release];
+    self.imageView = [[UIImageView alloc] init];
+    [self.view insertSubview:self.imageView belowSubview:self.frameView];
     
     [self.view setMultipleTouchEnabled:YES];
 

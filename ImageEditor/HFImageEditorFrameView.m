@@ -17,11 +17,9 @@
     self.opaque = NO;
     self.layer.opacity = 0.7;
     self.backgroundColor = [UIColor clearColor];
-    UIImageView *imageView = [[UIImageView alloc] initWithFrame:self.bounds];
-    imageView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-    [self addSubview:imageView];
-    self.imageView = imageView;
-    [imageView release];
+    self.imageView = [[UIImageView alloc] initWithFrame:self.bounds];
+    self.imageView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    [self addSubview:self.imageView];
 }
 
 - (id)initWithFrame:(CGRect)frame
@@ -41,13 +39,6 @@
     }
     return self;
 }
-
-- (void)dealloc
-{
-    [_imageView release];
-    [super dealloc];
-}
-
 
 - (void)setCropRect:(CGRect)cropRect
 {
