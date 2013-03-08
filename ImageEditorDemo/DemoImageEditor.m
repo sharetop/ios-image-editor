@@ -13,10 +13,12 @@
 {
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     if(self) {
-        self.cropSize = CGSizeMake(320,320);
+        //self.cropSize = CGSizeMake(320,320);
+        
+        self.cropSize=CGSizeZero;
         
         //self.minimumScale = 0.2;
-        self.maximumScale = 10;
+        self.maximumScale = 3;
         self.rotateEnabled = NO;
         
         self.limitedSizeEnabled=YES;

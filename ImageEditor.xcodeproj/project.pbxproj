@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		26D3DF2E16E9B8C000BDF647 /* HFImageUtilities.m in Sources */ = {isa = PBXBuildFile; fileRef = 26D3DF2D16E9B8C000BDF647 /* HFImageUtilities.m */; };
 		EC23E839167B5C3200314147 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = EC23E838167B5C3200314147 /* Default-568h@2x.png */; };
 		EC23E850167B600D00314147 /* DemoImageEditor.xib in Resources */ = {isa = PBXBuildFile; fileRef = EC23E84F167B600D00314147 /* DemoImageEditor.xib */; };
 		EC23EAED15ECC5610051EA9E /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EC23EAEC15ECC5610051EA9E /* UIKit.framework */; };
@@ -22,6 +23,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		26D3DF2C16E9B8C000BDF647 /* HFImageUtilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HFImageUtilities.h; sourceTree = "<group>"; };
+		26D3DF2D16E9B8C000BDF647 /* HFImageUtilities.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HFImageUtilities.m; sourceTree = "<group>"; };
 		EC23E835167B5B7A00314147 /* HFImageEditorViewController+SubclassingHooks.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "HFImageEditorViewController+SubclassingHooks.h"; sourceTree = "<group>"; };
 		EC23E838167B5C3200314147 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
 		EC23E84F167B600D00314147 /* DemoImageEditor.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = DemoImageEditor.xib; sourceTree = "<group>"; };
@@ -98,6 +101,8 @@
 				EC23EB0D15ECC5F80051EA9E /* HFImageEditorViewController.m */,
 				EC23EB1115ECC6350051EA9E /* HFImageEditorFrameView.h */,
 				EC23EB1215ECC6350051EA9E /* HFImageEditorFrameView.m */,
+				26D3DF2C16E9B8C000BDF647 /* HFImageUtilities.h */,
+				26D3DF2D16E9B8C000BDF647 /* HFImageUtilities.m */,
 			);
 			path = ImageEditor;
 			sourceTree = "<group>";
@@ -195,6 +200,7 @@
 				ECFB418215EE28D000FA7714 /* DemoAppDelegate.m in Sources */,
 				ECFB418515EE28D000FA7714 /* main.m in Sources */,
 				ECA6FB961645C8FA0090CA20 /* DemoImageEditor.m in Sources */,
+				26D3DF2E16E9B8C000BDF647 /* HFImageUtilities.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

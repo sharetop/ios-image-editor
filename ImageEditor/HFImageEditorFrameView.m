@@ -14,6 +14,7 @@
 
 - (void) initialize
 {
+    _cropRect=CGRectZero;
     self.opaque = NO;
     self.layer.opacity = 0.7;
     self.backgroundColor = [UIColor clearColor];
